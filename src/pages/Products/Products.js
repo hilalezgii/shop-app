@@ -1,29 +1,36 @@
 import React, { useState, useEffect } from "react";
-import { SafeAreaView, Text, FlatList } from "react-native";
+import { FlatList, ActivityIndicator } from "react-native";
 import { API_URL } from "@env"
 import axios from "axios";
 import ProductCard from "../../components/ProductCard";
+import useFetch from "../../hooks/useFetch";
+import Loading from "../../components/Loading";
+import Error from "../../components/Error";
 
-const Products = () => {
-    const [data, setData] = useState([]);
+const Products = ({ navigation }) => {
+    const { loading, data, error } = useFetch(`${API_URL}/products`)
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const { data: productData } = await axios.get(`${API_URL}/products`);
-            setData(productData);
-        };
-         
-        fetchData();
-    }, []);
+    const handleProductSelect = id => {
+        navigation.navigate('DetailPage',{id});
+    };
 
-    const renderProduct = ({ item }) =><ProductCard product={item}/> ;
+    const renderProduct = ({ item }) =>
+        <ProductCard product={item} onSelect={() => handleProductSelect(item.id)} />;
+
+    if (loading) {
+        return <Loading />
+    }
+
+    if (error) {
+        return <Error />;
+    }
+
     return (
-        <SafeAreaView>
-            <FlatList
-                data={data}
-                renderItem={renderProduct}
-            />
-        </SafeAreaView>
+        <FlatList
+            data={data}
+            renderItem={renderProduct}
+        />
+
     );
 };
 export default Products;
